@@ -42,7 +42,7 @@ define disk::quota (
       provider => 'shell',
       path     => '/usr/bin:/usr/sbin:/bin',
       command  => "setquota ${name_switch} ${name} ${block_softlimit} ${block_hardlimit} ${inode_softlimit} ${inode_hardlimit} ${mount_point}",
-      unless   => "quotaline=`repquota ${mount_point} | grep ${name}` && nb_fields=`echo \${quotaline} | awk '{ print NF }'` && block_soft=`echo \${quotaline} | awk '{ print \$4 }'` && block_hard=`echo \${quotaline} | awk '{ print \$5 }'` && if [ \${nb_fields} -eq 8 ] ; then file_soft=`echo \${quotaline} | awk '{ print \$7 }'` ; file_hard=`echo \${quotaline} | awk '{ print \$8 }'` ; fi ; if [ \${nb_fields} -eq 10 ] ; then file_soft=`echo \${quotaline} | awk '{ print \$8 }'` ; file_hard=`echo \${quotaline} | awk '{ print \$9 }'` ; fi ; test \${block_soft} == ${block_softlimit} -a \${block_hard} == ${block_hardlimit} -a \${file_soft} == ${inode_softlimit} -a \${file_hard} == ${inode_hardlimit}",
+      unless   => "quotaline=`repquota ${mount_point} | grep ${name}` && grace_block=`if [ \$(echo \${quotaline} | awk '{ print \$2 }') == \"+-\" -o \$(echo \${quotaline} | awk '{ print \$2 }') == \"++\" ] ; then echo \"yes\" ; else echo \"no\" ; fi` && block_soft=`echo \${quotaline} | awk '{ print \$4 }'` && block_hard=`echo \${quotaline} | awk '{ print \$5 }'` && if [ \${grace_block} == \"no\" ] ; then file_soft=`echo \${quotaline} | awk '{ print \$7 }'` ; file_hard=`echo \${quotaline} | awk '{ print \$8 }'` ; fi ; if [ \${grace_block} == \"yes\" ] ; then file_soft=`echo \${quotaline} | awk '{ print \$8 }'` ; file_hard=`echo \${quotaline} | awk '{ print \$9 }'` ; fi ; test \${block_soft} == ${block_softlimit} -a \${block_hard} == ${block_hardlimit} -a \${file_soft} == ${inode_softlimit} -a \${file_hard} == ${inode_hardlimit}",
     }
   }
 
@@ -51,7 +51,7 @@ define disk::quota (
       provider => 'shell',
       path     => '/usr/bin:/usr/sbin:/bin',
       command  => "setquota ${name_switch} ${name} 0 0 0 0 ${mount_point}",
-      unless   => "quotaline=`repquota ${mount_point} | grep ${name}` && nb_fields=`echo \${quotaline} | awk '{ print NF }'` && block_soft=`echo \${quotaline} | awk '{ print \$4 }'` && block_hard=`echo \${quotaline} | awk '{ print \$5 }'` && if [ \${nb_fields} -eq 8 ] ; then file_soft=`echo \${quotaline} | awk '{ print \$7 }'` ; file_hard=`echo \${quotaline} | awk '{ print \$8 }'` ; fi ; if [ \${nb_fields} -eq 10 ] ; then file_soft=`echo \${quotaline} | awk '{ print \$8 }'` ; file_hard=`echo \${quotaline} | awk '{ print \$9 }'` ; fi ; test \${block_soft} == 0 -a \${block_hard} == 0 -a \${file_soft} == 0 -a \${file_hard} == 0",
+      unless   => "quotaline=`repquota ${mount_point} | grep ${name}` ; if [ -z \"\${quotaline}\" ] ; then /bin/true ; else grace_block=`if [ \$(echo \${quotaline} | awk '{ print \$2 }') == \"+-\" -o \$(echo \${quotaline} | awk '{ print \$2 }') == \"++\" ] ; then echo \"yes\" ; else echo \"no\" ; fi` && block_soft=`echo \${quotaline} | awk '{ print \$4 }'` && block_hard=`echo \${quotaline} | awk '{ print \$5 }'` && if [ \${grace_block} == \"no\" ] ; then file_soft=`echo \${quotaline} | awk '{ print \$7 }'` ; file_hard=`echo \${quotaline} | awk '{ print \$8 }'` ; fi ; if [ \${grace_block} == \"yes\" ] ; then file_soft=`echo \${quotaline} | awk '{ print \$8 }'` ; file_hard=`echo \${quotaline} | awk '{ print \$9 }'` ; fi ; test \${block_soft} == 0 -a \${block_hard} == 0 -a \${file_soft} == 0 -a \${file_hard} == 0 ; fi",
     }
   }
 }
